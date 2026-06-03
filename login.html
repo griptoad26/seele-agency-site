@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seele Agency — Restricted Access</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a14 50%, #000 100%);
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .lock-container {
+    text-align: center;
+    max-width: 420px;
+    width: 100%;
+  }
+  .lock-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
+  }
+  h1 {
+    color: #8b5cf6;
+    font-size: 2rem;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .subtitle {
+    color: #9ca3af;
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+  .login-box {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 16px;
+    padding: 32px 28px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+  label {
+    display: block;
+    color: #9ca3af;
+    font-size: 12px;
+    text-align: left;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  input[type="password"] {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 16px;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #fff;
+    margin-bottom: 16px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  input[type="password"]:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  }
+  input[type="password"]::placeholder { color: #6b7280; }
+  button {
+    width: 100%;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+  }
+  button:active { transform: translateY(0); }
+  .error {
+    color: #ef4444;
+    font-size: 13px;
+    margin-top: 14px;
+    min-height: 18px;
+  }
+  .footer-note {
+    color: #6b7280;
+    font-size: 11px;
+    margin-top: 20px;
+  }
+  .attempts {
+    color: #f59e0b;
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  .logout-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(139, 92, 246, 0.2);
+  }
+  .logout-btn {
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    padding: 8px 16px;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    width: auto;
+  }
+  .logout-btn:hover { background: rgba(239, 68, 68, 0.1); }
+</style>
+</head>
+<body>
+<div class="lock-container">
+  <div class="lock-icon">🔒</div>
+  <h1>Seele Agency</h1>
+  <p class="subtitle">Restricted Access — Owner Only</p>
+
+  <div class="login-box" id="loginBox">
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter access password" autocomplete="off" autofocus />
+    <button onclick="checkPassword()">Unlock</button>
+    <div class="error" id="error"></div>
+    <div class="attempts" id="attempts"></div>
+  </div>
+
+  <p class="footer-note">Authorized personnel only · All access is logged</p>
+</div>
+
+<script>
+  // Passwords (must match auth.js)
+  const VALID_PASSWORDS = ['tabmind2026'];
+  const SESSION_KEY = 'seele_agency_auth';
+  const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_MS = 5 * 60 * 1000; // 5 min lockout
+
+  let attemptCount = 0;
+  let lockedUntil = parseInt(localStorage.getItem('seele_lockout_until') || '0');
+
+  // Check if currently locked out
+  if (Date.now() < lockedUntil) {
+    showLockout();
+  }
+
+  // Check if already authenticated
+  const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+  if (session && Date.now() - session.timestamp < SESSION_TTL_MS) {
+    // Already logged in - show option to re-enter or go to home
+    document.getElementById('loginBox').innerHTML = `
+      <p style="color:#9ca3af; margin-bottom:16px;">✓ Already authenticated as <strong>${session.user}</strong></p>
+      <button onclick="goHome()">Enter Site</button>
+      <div class="logout-section">
+        <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+      </div>
+    `;
+  }
+
+  function checkPassword() {
+    if (Date.now() < lockedUntil) {
+      showLockout();
+      return;
+    }
+
+    const pwd = document.getElementById('password').value;
+    const errorEl = document.getElementById('error');
+    const attemptsEl = document.getElementById('attempts');
+
+    if (VALID_PASSWORDS.includes(pwd)) {
+      // Success
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        timestamp: Date.now(),
+        user: 'griptoad'
+      }));
+      localStorage.removeItem('seele_lockout_until');
+      window.location.href = '/index.html';
+    } else {
+      attemptCount++;
+      const remaining = MAX_ATTEMPTS - attemptCount;
+      errorEl.textContent = '✗ Incorrect password';
+      attemptsEl.textContent = remaining > 0
+        ? `${remaining} attempt${remaining === 1 ? '' : 's'} remaining`
+        : '⚠ Final attempt before lockout';
+
+      document.getElementById('password').value = '';
+
+      if (attemptCount >= MAX_ATTEMPTS) {
+        lockedUntil = Date.now() + LOCKOUT_MS;
+        localStorage.setItem('seele_lockout_until', lockedUntil.toString());
+        showLockout();
+      }
+    }
+  }
+
+  function showLockout() {
+    const remaining = Math.ceil((lockedUntil - Date.now()) / 1000 / 60);
+    document.getElementById('loginBox').innerHTML = `
+      <div style="color:#ef4444; padding:20px;">
+        <div style="font-size:48px; margin-bottom:12px;">🚫</div>
+        <strong>Too many failed attempts</strong>
+        <p style="margin-top:8px; color:#9ca3af; font-size:13px;">
+          Access locked for ${remaining} minute${remaining === 1 ? '' : 's'}.
+        </p>
+      </div>
+    `;
+  }
+
+  function goHome() {
+    window.location.href = '/index.html';
+  }
+
+  function doLogout() {
+    localStorage.removeItem(SESSION_KEY);
+    location.reload();
+  }
+
+  // Submit on Enter
+  document.getElementById('password').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') checkPassword();
+  });
+</script>
+</body>
+</html>
