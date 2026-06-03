@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OCMI Agent Office - Live Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0a0a0f; color: #c9d1d9; padding: 24px; }
+  h1 { color: #58a6ff; margin-bottom: 6px; font-size: 24px; }
+  .subtitle { color: #8b949e; margin-bottom: 20px; font-size: 12px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat { background: #11131a; border: 1px solid #1f2937; border-radius: 8px; padding: 14px; text-align: center; }
+  .stat-value { font-size: 24px; font-weight: 600; color: #58a6ff; }
+  .stat-label { font-size: 10px; color: #8b949e; text-transform: uppercase; margin-top: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .card { background: #11131a; border: 1px solid #1f2937; border-radius: 8px; overflow: hidden; }
+  .card-head { background: #1a1f2e; padding: 10px 14px; font-weight: 600; color: #f0f6fc; font-size: 13px; border-bottom: 1px solid #1f2937; display: flex; justify-content: space-between; align-items: center; }
+  .card-head .count { font-size: 11px; color: #8b5cf6; font-family: ui-monospace, monospace; }
+  .card-body { padding: 10px 14px; max-height: 280px; overflow-y: auto; }
+  .agent { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; }
+  .avatar { width: 22px; height: 22px; border-radius: 4px; background: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: white; }
+  .avatar.dev { background: #06b6d4; }
+  .avatar.marketing { background: #ec4899; }
+  .avatar.sales { background: #10b981; }
+  .avatar.support { background: #f59e0b; }
+  .avatar.hr { background: #a78bfa; }
+  .avatar.legal { background: #ef4444; }
+  .avatar.finance { background: #84cc16; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; margin-left: auto; }
+  .status-dot.away { background: #f59e0b; }
+  .status-dot.busy { background: #ef4444; }
+  .endpoint { background: #11131a; border: 1px solid #1f2937; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-family: ui-monospace, monospace; font-size: 11px; color: #8b949e; }
+  .endpoint code { color: #58a6ff; }
+  .footer { color: #6e7681; font-size: 11px; margin-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+<h1>🏢 OCMI Agent Office</h1>
+<div class="subtitle">Live status · 2026-06-02 · Webhook bot running on :8910</div>
+
+<div class="endpoint">
+  📡 <strong>Webhook:</strong> <code>POST http://x2-nuc.tailb0d54b.ts.net:8910/</code><br>
+  🩺 <strong>Health:</strong> <code>GET http://x2-nuc.tailb0d54b.ts.net:8910/health</code><br>
+  📖 <strong>Help:</strong> <code>GET http://x2-nuc.tailb0d54b.ts.net:8910/</code>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-value" id="agents-count">35</div><div class="stat-label">Agents</div></div>
+  <div class="stat"><div class="stat-value">10</div><div class="stat-label">Channels</div></div>
+  <div class="stat"><div class="stat-value" id="projects-count">5</div><div class="stat-label">Projects</div></div>
+  <div class="stat"><div class="stat-value">10</div><div class="stat-label">Pipelines</div></div>
+  <div class="stat"><div class="stat-value" id="msgs-count">0</div><div class="stat-label">Messages</div></div>
+</div>
+
+<div class="grid" id="channels-grid">
+  <div class="card"><div class="card-head">#general <span class="count">3</span></div><div class="card-body">
+    <div class="agent"><div class="avatar">OC</div>ocmi-orchestrator<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar">M</div>main<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar">R</div>reality-checker<div class="status-dot away"></div></div>
+  </div></div>
+  <div class="card"><div class="card-head">#engineering <span class="count">7</span></div><div class="card-body">
+    <div class="agent"><div class="avatar dev">XD</div>xkg-dev<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">FD</div>frontend-developer<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">QA</div>qa-agent<div class="status-dot busy"></div></div>
+    <div class="agent"><div class="avatar dev">RV</div>xkg-reviewer<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">DO</div>devops-agent<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">DB</div>database-optimizer<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">SE</div>security-agent<div class="status-dot"></div></div>
+  </div></div>
+  <div class="card"><div class="card-head">#mobile <span class="count">6</span></div><div class="card-body">
+    <div class="agent"><div class="avatar dev">XL</div>xkg-mobile-lead<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">XM</div>xkg-mobile-dev<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">XQ</div>xkg-mobile-qa<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">XR</div>xkg-mobile-reviewer<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">AT</div>android-agent<div class="status-dot away"></div></div>
+    <div class="agent"><div class="avatar dev">TM</div>tabmind-tester<div class="status-dot"></div></div>
+  </div></div>
+  <div class="card"><div class="card-head">#marketing <span class="count">4</span></div><div class="card-body">
+    <div class="agent"><div class="avatar marketing">TR</div>trend-researcher<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar marketing">SP</div>studio-producer<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar marketing">IC</div>instagram-curator<div class="status-dot busy"></div></div>
+    <div class="agent"><div class="avatar marketing">SV</div>short-video-editing-coach<div class="status-dot"></div></div>
+  </div></div>
+  <div class="card"><div class="card-head">#sales <span class="count">4</span></div><div class="card-body">
+    <div class="agent"><div class="avatar sales">SD</div>sales-data-extraction-agent<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar sales">CB</div>cross-border-e-commerce-specialist<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar sales">PD</div>programmatic-display-buyer<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar sales">PR</div>private-domain-operator<div class="status-dot away"></div></div>
+  </div></div>
+  <div class="card"><div class="card-head">#support <span class="count">3</span></div><div class="card-body">
+    <div class="agent"><div class="avatar support">SR</div>support-responder<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar support">ET</div>experiment-tracker<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar support">TM</div>tracking-measurement-specialist<div class="status-dot"></div></div>
+  </div></div>
+  <div class="card"><div class="card-head">#finance-legal <span class="count">4</span></div><div class="card-body">
+    <div class="agent"><div class="avatar finance">ST</div>stripe-agent<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar legal">LC</div>legal-compliance-checker<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar legal">HM</div>healthcare-marketing-compliance-specialist<div class="status-dot away"></div></div>
+  </div></div>
+  <div class="card"><div class="card-head">#hiring <span class="count">1</span></div><div class="card-body">
+    <div class="agent"><div class="avatar hr">RC</div>recruitment-specialist<div class="status-dot"></div></div>
+  </div></div>
+  <div class="card"><div class="card-head">#ops <span class="count">4</span></div><div class="card-body">
+    <div class="agent"><div class="avatar dev">CO</div>cloud-ops-agent<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">AR</div>archivist<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">OC</div>ocmi-coord-agent<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">XR</div>xr-immersive-developer<div class="status-dot away"></div></div>
+  </div></div>
+  <div class="card"><div class="card-head">#incidents <span class="count">4</span></div><div class="card-body">
+    <div class="agent"><div class="avatar dev">DO</div>devops-agent<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">XL</div>xkg-mobile-lead<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">RC</div>reality-checker<div class="status-dot"></div></div>
+    <div class="agent"><div class="avatar dev">SE</div>security-agent<div class="status-dot"></div></div>
+  </div></div>
+</div>
+
+<div class="footer">
+  Status legend: <span style="color:#10b981">●</span> online · <span style="color:#f59e0b">●</span> away · <span style="color:#ef4444">●</span> busy
+</div>
+
+<script>
+  // Auto-refresh stats
+  async function refresh() {
+    try {
+      const r = await fetch('/health');
+      const d = await r.json();
+      document.getElementById('agents-count').textContent = d.agents;
+    } catch(e) {}
+  }
+  refresh();
+  setInterval(refresh, 10000);
+</script>
+</body>
+</html>
