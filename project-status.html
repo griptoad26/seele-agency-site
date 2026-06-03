@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OCMI Projects - Live Status</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0a0a0f; color: #c9d1d9; padding: 24px; }
+  h1 { color: #58a6ff; margin-bottom: 6px; }
+  .subtitle { color: #8b949e; margin-bottom: 24px; font-size: 13px; }
+  .project { background: #11131a; border: 1px solid #1f2937; border-radius: 10px; margin-bottom: 18px; padding: 18px; }
+  .project-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #1f2937; }
+  .project-name { font-size: 17px; font-weight: 600; color: #f0f6fc; }
+  .status-badge { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; }
+  .status-active { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; }
+  .status-stable { background: #3fb95033; color: #3fb950; border: 1px solid #3fb950; }
+  .status-progress { background: #d2992233; color: #d29922; border: 1px solid #d29922; }
+  .status-new { background: #8b5cf633; color: #a78bfa; border: 1px solid #8b5cf6; }
+  .field { display: flex; gap: 10px; padding: 4px 0; font-size: 13px; }
+  .field-label { color: #8b949e; min-width: 90px; }
+  .field-value { color: #c9d1d9; }
+  .agent-chip { display: inline-block; background: #1f2937; color: #a78bfa; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-right: 4px; font-family: ui-monospace, monospace; }
+  .footer { color: #6e7681; font-size: 11px; margin-top: 24px; text-align: center; }
+</style>
+</head>
+<body>
+<h1>📋 OCMI Projects — Live Status</h1>
+<div class="subtitle">Last update: 2026-06-02 23:35 PDT · Managed by OCMI Agent Office</div>
+
+<div class="project">
+  <div class="project-head">
+    <div class="project-name">📱 XKG Mobile (TabMind)</div>
+    <div class="status-badge status-active">active</div>
+  </div>
+  <div class="field"><div class="field-label">Goal:</div><div class="field-value">Ship TabMind APK to production</div></div>
+  <div class="field"><div class="field-label">Agents:</div><div class="field-value">
+    <span class="agent-chip">xkg-mobile-lead</span>
+    <span class="agent-chip">xkg-mobile-dev</span>
+    <span class="agent-chip">xkg-mobile-qa</span>
+    <span class="agent-chip">android-agent</span>
+    <span class="agent-chip">tabmind-tester</span>
+  </div></div>
+  <div class="field"><div class="field-label">Channels:</div><div class="field-value">#mobile, #engineering</div></div>
+  <div class="field"><div class="field-label">Latest:</div><div class="field-value">TASK-XKG-MOBILE-20260601-001 done — Tauri+React shell built (Win .exe 6.8MB, Linux 8.4MB) with Grok API + SQLite auto-save. <strong>Next: Android APK build on verifier</strong></div></div>
+</div>
+
+<div class="project">
+  <div class="project-head">
+    <div class="project-name">💻 XKG Desktop</div>
+    <div class="status-badge status-stable">stable</div>
+  </div>
+  <div class="field"><div class="field-label">Goal:</div><div class="field-value">Maintain v1.x with LLM shell</div></div>
+  <div class="field"><div class="field-label">Agents:</div><div class="field-value">
+    <span class="agent-chip">xkg-dev</span>
+    <span class="agent-chip">xkg-release-agent</span>
+    <span class="agent-chip">qa-agent</span>
+  </div></div>
+  <div class="field"><div class="field-label">Channels:</div><div class="field-value">#engineering</div></div>
+  <div class="field"><div class="field-label">Latest:</div><div class="field-value">v1.0 released on GitHub. Need to fill in IDENTITY.md/SOUL.md for xkg-desktop workspace to enable real standups.</div></div>
+</div>
+
+<div class="project">
+  <div class="project-head">
+    <div class="project-name">📊 Cluster Hub Dashboard</div>
+    <div class="status-badge status-progress">in_progress</div>
+  </div>
+  <div class="field"><div class="field-label">Goal:</div><div class="field-value">Ship DASH-001 to DASH-007</div></div>
+  <div class="field"><div class="field-label">Agents:</div><div class="field-value">
+    <span class="agent-chip">dashboard-architect</span>
+    <span class="agent-chip">frontend-developer</span>
+    <span class="agent-chip">integration-specialist</span>
+    <span class="agent-chip">qa-tester</span>
+    <span class="agent-chip">qa-agent</span>
+    <span class="agent-chip">devops-agent</span>
+  </div></div>
+  <div class="field"><div class="field-label">Channels:</div><div class="field-value">#engineering, #ops</div></div>
+  <div class="field"><div class="field-label">Latest:</div><div class="field-value">frontend-developer proposed 3 missing panels: Real-Time Health Monitor, Task Kanban, Agent Activity Feed. Task TASK-OCMI-20260504-132 marked completed via office bot.</div></div>
+</div>
+
+<div class="project">
+  <div class="project-head">
+    <div class="project-name">🏢 OCMI Agent Office</div>
+    <div class="status-badge status-active">active</div>
+  </div>
+  <div class="field"><div class="field-label">Goal:</div><div class="field-value">Build Discord-based office workspace</div></div>
+  <div class="field"><div class="field-label">Agents:</div><div class="field-value">
+    <span class="agent-chip">ocmi-orchestrator</span>
+    <span class="agent-chip">ocmi-coord-agent</span>
+    <span class="agent-chip">main</span>
+    <span class="agent-chip">web-dev-agent</span>
+    <span class="agent-chip">frontend-developer</span>
+    <span class="agent-chip">security-agent</span>
+  </div></div>
+  <div class="field"><div class="field-label">Channels:</div><div class="field-value">#general, #ops</div></div>
+  <div class="field"><div class="field-label">Latest:</div><div class="field-value">Discord webhook bot live on :8910. 37 agents detected, 10 channels mapped, pipeline + project managers operational.</div></div>
+</div>
+
+<div class="project">
+  <div class="project-head">
+    <div class="project-name">🤖 Discord Agent Bot</div>
+    <div class="status-badge status-new">new</div>
+  </div>
+  <div class="field"><div class="field-label">Goal:</div><div class="field-value">Build Discord office for 45 agents</div></div>
+  <div class="field"><div class="field-label">Channels:</div><div class="field-value">All (Discord integration)</div></div>
+  <div class="field"><div class="field-label">Latest:</div><div class="field-value">Just created. Awaiting Discord bot token to connect real Discord API.</div></div>
+</div>
+
+<div class="footer">
+  Office bot running on <code>127.0.0.1:8910</code> · Cron @reboot auto-starts
+</div>
+</body>
+</html>
