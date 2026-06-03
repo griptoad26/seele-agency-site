@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>OCMI Agent Pipelines</title>
+<title>OCMI Startup Pipelines + Agent Office</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -12,43 +12,39 @@
     padding: 24px;
     line-height: 1.5;
   }
-  h1 {
-    color: #58a6ff;
-    margin-bottom: 8px;
-    font-size: 28px;
-  }
-  .subtitle { color: #8b949e; margin-bottom: 32px; font-size: 13px; }
-
+  h1 { color: #58a6ff; margin-bottom: 6px; font-size: 28px; }
+  h2 { color: #f0f6fc; margin: 32px 0 14px 0; font-size: 20px; border-bottom: 1px solid #1f2937; padding-bottom: 8px; }
+  .subtitle { color: #8b949e; margin-bottom: 24px; font-size: 13px; }
   .pipeline-block {
     background: #11131a;
     border: 1px solid #1f2937;
     border-radius: 10px;
-    margin-bottom: 28px;
+    margin-bottom: 22px;
     overflow: hidden;
   }
   .pipeline-header {
     background: linear-gradient(90deg, #1e1b4b 0%, #11131a 100%);
-    padding: 14px 20px;
+    padding: 12px 18px;
     border-bottom: 1px solid #1f2937;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
   }
-  .pipeline-title { font-size: 17px; color: #f0f6fc; font-weight: 600; }
+  .pipeline-title { font-size: 16px; color: #f0f6fc; font-weight: 600; }
   .pipeline-trigger { font-size: 11px; color: #8b5cf6; font-family: ui-monospace, monospace; }
-  .flow {
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    gap: 0;
-  }
+  .pipeline-meta { display: flex; gap: 6px; }
+  .badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+  .badge-time { background: #1f6feb33; color: #58a6ff; }
+  .badge-freq { background: #6b728033; color: #9ca3af; }
+  .flow { display: flex; flex-direction: column; padding: 16px; gap: 0; }
   .node {
     background: #0a0a0f;
     border: 1px solid #30363d;
     border-left: 3px solid #8b5cf6;
     border-radius: 6px;
-    padding: 12px 16px;
-    position: relative;
+    padding: 10px 14px;
   }
   .node.gate { border-left-color: #f59e0b; }
   .node.decision { border-left-color: #f59e0b; background: #1a1505; }
@@ -56,403 +52,542 @@
   .node.agent { border-left-color: #a78bfa; background: #15101f; }
   .node.terminal { border-left-color: #10b981; background: #051a10; }
   .node.terminal-fail { border-left-color: #ef4444; background: #1a0508; }
-  .node-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    color: #6b7280;
-    font-weight: 600;
-    letter-spacing: 0.8px;
-    margin-bottom: 4px;
-  }
-  .node-name { font-size: 14px; color: #f0f6fc; font-weight: 500; }
-  .node-detail { font-size: 12px; color: #8b949e; margin-top: 4px; font-family: ui-monospace, monospace; }
-  .node-agent-name { font-size: 11px; color: #a78bfa; margin-top: 4px; font-weight: 500; }
-  .arrow {
-    text-align: center;
-    color: #58a6ff;
-    font-size: 18px;
-    padding: 4px 0;
-    line-height: 1;
-  }
+  .node-label { font-size: 10px; text-transform: uppercase; color: #6b7280; font-weight: 600; letter-spacing: 0.8px; margin-bottom: 3px; }
+  .node-name { font-size: 13px; color: #f0f6fc; font-weight: 500; }
+  .node-detail { font-size: 11px; color: #8b949e; margin-top: 3px; font-family: ui-monospace, monospace; }
+  .node-agent-name { font-size: 11px; color: #a78bfa; margin-top: 3px; font-weight: 500; }
+  .arrow { text-align: center; color: #58a6ff; font-size: 16px; padding: 3px 0; }
   .arrow.branch { color: #f59e0b; }
-  .branch-container {
+  .branch-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 3px 0; }
+  .branch-label { text-align: center; font-size: 10px; color: #f59e0b; font-weight: 600; padding: 1px; }
+  /* Office section */
+  .office-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin: 4px 0;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
   }
-  .branch-label {
-    text-align: center;
-    font-size: 11px;
-    color: #f59e0b;
+  .channel {
+    background: #11131a;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .channel-head {
+    background: #1a1f2e;
+    padding: 10px 14px;
     font-weight: 600;
-    padding: 2px;
+    color: #f0f6fc;
+    font-size: 14px;
+    border-bottom: 1px solid #1f2937;
   }
+  .channel-members { padding: 10px 14px; }
+  .member {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 12px;
+    color: #c9d1d9;
+  }
+  .avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: #8b5cf6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+  }
+  .avatar.dev { background: #06b6d4; }
+  .avatar.marketing { background: #ec4899; }
+  .avatar.sales { background: #10b981; }
+  .avatar.support { background: #f59e0b; }
+  .avatar.hr { background: #a78bfa; }
+  .avatar.legal { background: #ef4444; }
+  .avatar.finance { background: #84cc16; }
+  .status { width: 8px; height: 8px; border-radius: 50%; background: #10b981; margin-left: auto; }
+  .status.away { background: #f59e0b; }
+  .status.busy { background: #ef4444; }
+  .arch-box {
+    background: #11131a;
+    border: 1px solid #1f2937;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0;
+  }
+  .arch-layer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: #0a0a0f;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  .arch-layer-title { font-weight: 600; color: #f0f6fc; min-width: 160px; font-size: 13px; }
+  .arch-layer-desc { color: #8b949e; font-size: 12px; }
+  .arch-arrow { text-align: center; color: #58a6ff; font-size: 14px; padding: 2px 0; }
   .footer { color: #6e7681; font-size: 12px; margin-top: 32px; text-align: center; }
-  .legend { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8b949e; }
-  .legend-swatch { width: 12px; height: 12px; border-radius: 2px; border-left: 3px solid; }
+  .feasibility {
+    background: linear-gradient(90deg, #1a4d1a 0%, #0d2e0d 100%);
+    border: 1px solid #10b981;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+  }
+  .feasibility-title { color: #10b981; font-weight: 600; font-size: 14px; }
+  .feasibility-body { color: #d1fae5; font-size: 12px; margin-top: 6px; }
 </style>
 </head>
 <body>
-  <h1>⚙️ OCMI Agent Pipelines</h1>
-  <div class="subtitle">Executable flow diagrams · 2026-06-02 · Each node = one agent action or decision gate</div>
 
-  <div class="legend">
-    <div class="legend-item"><div class="legend-swatch" style="border-color:#8b5cf6"></div>Step</div>
-    <div class="legend-item"><div class="legend-swatch" style="border-color:#a78bfa"></div>Agent</div>
-    <div class="legend-item"><div class="legend-swatch" style="border-color:#06b6d4"></div>Action</div>
-    <div class="legend-item"><div class="legend-swatch" style="border-color:#f59e0b"></div>Decision</div>
-    <div class="legend-item"><div class="legend-swatch" style="border-color:#10b981"></div>Pass</div>
-    <div class="legend-item"><div class="legend-swatch" style="border-color:#ef4444"></div>Fail</div>
-  </div>
+<h1>🏢 OCMI Startup Pipelines & Agent Office</h1>
+<div class="subtitle">Real application startup workflows · 2026-06-02 · Each pipeline = executable bash sequence</div>
 
-  <!-- ============================================ -->
-  <!-- PIPELINE 1: AGENT PROFILE REVIEW             -->
-  <!-- ============================================ -->
-  <div class="pipeline-block">
-    <div class="pipeline-header">
-      <div class="pipeline-title">📋 Pipeline 1: Agent Profile Review</div>
-      <div class="pipeline-trigger">trigger: new agent MD created in /agents/</div>
-    </div>
-    <div class="flow">
-      <div class="node">
-        <div class="node-label">01 · Trigger</div>
-        <div class="node-name">File watcher detects new .md in ~/.openclaw/agents/*/</div>
-        <div class="node-detail">inotify → publish to cluster-hub /api/events</div>
-      </div>
-      <div class="arrow">↓</div>
+<!-- ============================================ -->
+<!-- SECTION 1: STARTUP PIPELINES                  -->
+<!-- ============================================ -->
+<h2>1️⃣ Application Startup Pipelines</h2>
 
-      <div class="node agent">
-        <div class="node-label">02 · Validate</div>
-        <div class="node-name">Parse SOUL.md + AGENTS.md + IDENTITY.md</div>
-        <div class="node-agent-name">agent: ocmi-orchestrator</div>
-        <div class="node-detail">check required fields: name, role, capabilities</div>
-      </div>
-      <div class="arrow">↓</div>
-
-      <div class="node decision">
-        <div class="node-label">03 · Decision Gate</div>
-        <div class="node-name">Schema valid + role defined?</div>
-      </div>
-      <div class="arrow branch">↙ NO ────────────── ↘ YES</div>
-
-      <div class="branch-container">
-        <div>
-          <div class="branch-label">FAIL</div>
-          <div class="node terminal-fail">
-            <div class="node-label">Exit</div>
-            <div class="node-name">Reject + notify creator</div>
-            <div class="node-detail">log: schema validation errors</div>
-          </div>
-        </div>
-        <div>
-          <div class="branch-label">CONTINUE</div>
-          <div class="node agent">
-            <div class="node-label">04 · Extract</div>
-            <div class="node-name">Build agent profile JSON</div>
-            <div class="node-agent-name">agent: ocmi-orchestrator</div>
-            <div class="node-detail">{id, role, capabilities[], tools[], scope}</div>
-          </div>
-        </div>
-      </div>
-      <div class="arrow">↓</div>
-
-      <div class="node action">
-        <div class="node-label">05 · Action</div>
-        <div class="node-name">Register in Cluster Hub</div>
-        <div class="node-detail">POST /api/agents {profile}</div>
-      </div>
-      <div class="arrow">↓</div>
-
-      <div class="node agent">
-        <div class="node-label">06 · Security Scan</div>
-        <div class="node-name">Scan for secrets, prompt injection, unsafe tool access</div>
-        <div class="node-agent-name">agent: security-agent</div>
-        <div class="node-detail">grep -E "(api[_-]?key|password|token)" /agents/*/</div>
-      </div>
-      <div class="arrow">↓</div>
-
-      <div class="node decision">
-        <div class="node-label">07 · Decision Gate</div>
-        <div class="node-name">Security risks detected?</div>
-      </div>
-      <div class="arrow branch">↙ YES ───────────── ↘ NO</div>
-
-      <div class="branch-container">
-        <div>
-          <div class="branch-label">QUARANTINE</div>
-          <div class="node terminal-fail">
-            <div class="node-label">Exit</div>
-            <div class="node-name">Flag for human review</div>
-            <div class="node-detail">status=quarantined, log findings</div>
-          </div>
-        </div>
-        <div>
-          <div class="branch-label">CONTINUE</div>
-          <div class="node agent">
-            <div class="node-label">08 · Capability Test</div>
-            <div class="node-name">Run smoke test: openclaw agent --agent &lt;id&gt; --local "ping"</div>
-            <div class="node-agent-name">agent: qa-agent</div>
-            <div class="node-detail">verify responds in &lt; 30s, returns expected fields</div>
-          </div>
-        </div>
-      </div>
-      <div class="arrow">↓</div>
-
-      <div class="node decision">
-        <div class="node-label">09 · Decision Gate</div>
-        <div class="node-name">Smoke test passes?</div>
-      </div>
-      <div class="arrow branch">↙ NO ────────────── ↘ YES</div>
-
-      <div class="branch-container">
-        <div>
-          <div class="branch-label">RETRY (max 3x)</div>
-          <div class="node">
-            <div class="node-label">Backoff</div>
-            <div class="node-name">Sleep 60s, retry ping</div>
-          </div>
-        </div>
-        <div>
-          <div class="branch-label">PASS</div>
-          <div class="node action">
-            <div class="node-label">10 · Activate</div>
-            <div class="node-name">Set status=active in Hub</div>
-            <div class="node-detail">PATCH /api/agents/&lt;id&gt; {status:active}</div>
-          </div>
-        </div>
-      </div>
-      <div class="arrow">↓</div>
-
-      <div class="node action">
-        <div class="node-label">11 · Index</div>
-        <div class="node-name">Add to dashboard registry + topic graph</div>
-        <div class="node-detail">live-topic-graph addNode(agent.id)</div>
-      </div>
-      <div class="arrow">↓</div>
-
-      <div class="node terminal">
-        <div class="node-label">✓ Complete</div>
-        <div class="node-name">Agent is live and routable</div>
-      </div>
+<!-- Pipeline: New Feature -->
+<div class="pipeline-block">
+  <div class="pipeline-header">
+    <div class="pipeline-title">🚀 New Feature: Idea → Shipped</div>
+    <div class="pipeline-meta">
+      <span class="badge badge-freq">on-demand</span>
+      <span class="badge badge-time">~2-3 days</span>
     </div>
   </div>
-
-  <!-- ============================================ -->
-  <!-- PIPELINE 2: XKG BUILD                        -->
-  <!-- ============================================ -->
-  <div class="pipeline-block">
-    <div class="pipeline-header">
-      <div class="pipeline-title">🔨 Pipeline 2: XKG Desktop Build</div>
-      <div class="pipeline-trigger">trigger: git push to xkg-desktop/main</div>
+  <div class="pipeline-trigger" style="padding: 6px 18px; color: #6b7280;">trigger: feature request in #product-feedback or Hub task created</div>
+  <div class="flow">
+    <div class="node"><div class="node-label">01 · Triage</div><div class="node-name">Score feature: impact × confidence ÷ effort</div><div class="node-detail">RICE framework, weight: 0.4 / 0.3 / 0.3</div></div>
+    <div class="arrow">↓</div>
+    <div class="node decision"><div class="node-label">02 · Gate</div><div class="node-name">Score ≥ 6.0?</div></div>
+    <div class="arrow branch">↙ NO ─── ↘ YES</div>
+    <div class="branch-container">
+      <div><div class="branch-label">DEFER</div><div class="node terminal-fail"><div class="node-name">Add to backlog, log to #product-decisions</div></div></div>
+      <div><div class="branch-label">CONTINUE</div><div class="node agent"><div class="node-label">03 · Spec</div><div class="node-name">Write feature spec: user story, AC, edge cases</div><div class="node-agent-name">agent: xkg-lead</div></div></div>
     </div>
-    <div class="flow">
-      <div class="node">
-        <div class="node-label">01 · Trigger</div>
-        <div class="node-name">Webhook: GitHub push event</div>
-        <div class="node-detail">POST /hooks/github xkg-desktop</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node agent">
-        <div class="node-label">02 · CI Sync</div>
-        <div class="node-name">git pull + cargo check + npm install</div>
-        <div class="node-agent-name">agent: devops-agent</div>
-        <div class="node-detail">timeout 300s, capture exit code</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node decision">
-        <div class="node-label">03 · Decision Gate</div>
-        <div class="node-name">Compile succeeds?</div>
-      </div>
-      <div class="arrow branch">↙ NO ─── ↘ YES</div>
-      <div class="branch-container">
-        <div>
-          <div class="branch-label">FAIL</div>
-          <div class="node terminal-fail">
-            <div class="node-name">Notify dev, halt pipeline</div>
-          </div>
-        </div>
-        <div>
-          <div class="branch-label">CONTINUE</div>
-          <div class="node agent">
-            <div class="node-label">04 · Code Review</div>
-            <div class="node-name">Clawpatch: critical issues?</div>
-            <div class="node-agent-name">agent: xkg-reviewer</div>
-            <div class="node-detail">fail-on: critical, warn-count &lt; 10</div>
-          </div>
-        </div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node action">
-        <div class="node-label">05 · Build Binary</div>
-        <div class="node-name">cargo tauri build → XKnowledgeGraph.exe</div>
-        <div class="node-detail">target: x86_64-pc-windows-msvc</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node agent">
-        <div class="node-label">06 · QA</div>
-        <div class="node-name">Launch .exe, smoke test UI</div>
-        <div class="node-agent-name">agent: qa-agent</div>
-        <div class="node-detail">Qwen-VL screenshot verify</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node action">
-        <div class="node-label">07 · Release</div>
-        <div class="node-name">gh release create xkg-v1.x</div>
-        <div class="node-detail">upload .exe asset, update seele.agency</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node terminal">
-        <div class="node-name">✓ Released to users</div>
-      </div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">04 · Design</div><div class="node-name">UI mockup + data model</div><div class="node-agent-name">agent: xkg-dev + frontend-developer</div></div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">05 · Branch</div><div class="node-name">gh pr create --draft feat/&lt;name&gt;</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">06 · Implement</div><div class="node-name">Code + tests (TDD)</div><div class="node-agent-name">agent: xkg-dev (primary) + xkg-qa (tests)</div><div class="node-detail">target: &gt; 80% coverage on new code</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">07 · Review</div><div class="node-name">Clawpatch: critical issues + style</div><div class="node-agent-name">agent: xkg-reviewer</div><div class="node-detail">fail-on: critical, warn &lt; 10</div></div>
+    <div class="arrow">↓</div>
+    <div class="node decision"><div class="node-label">08 · Gate</div><div class="node-name">Approved?</div></div>
+    <div class="arrow branch">↙ NO ─── ↘ YES</div>
+    <div class="branch-container">
+      <div><div class="branch-label">FIX</div><div class="node"><div class="node-name">Auto-iterate up to 3x</div></div></div>
+      <div><div class="branch-label">MERGE</div><div class="node action"><div class="node-label">09 · Ship</div><div class="node-name">Squash merge → main</div><div class="node-detail">triggers Pipeline 2: XKG Build</div></div></div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">10 · Announce</div><div class="node-name">Post to #changelog + #customers</div><div class="node-detail">auto-generated release notes</div></div>
+    <div class="arrow">↓</div>
+    <div class="node terminal"><div class="node-name">✓ Feature live for users</div></div>
+  </div>
+</div>
+
+<!-- Pipeline: Customer Onboarding -->
+<div class="pipeline-block">
+  <div class="pipeline-header">
+    <div class="pipeline-title">👋 Customer Onboarding: Signup → Activated</div>
+    <div class="pipeline-meta"><span class="badge badge-freq">per-user</span><span class="badge badge-time">~5 min</span></div>
+  </div>
+  <div class="pipeline-trigger" style="padding: 6px 18px; color: #6b7280;">trigger: POST /api/signup with email + payment</div>
+  <div class="flow">
+    <div class="node"><div class="node-label">01 · Webhook</div><div class="node-name">Stripe checkout.session.completed</div><div class="node-detail">capture: email, plan, payment_id</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">02 · Provision</div><div class="node-name">Create user account, generate API key</div><div class="node-agent-name">agent: stripe-agent</div><div class="node-detail">POST /api/users, store in users.db</div></div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">03 · Welcome</div><div class="node-name">Send welcome email with setup guide</div><div class="node-detail">template: welcome-{{plan}}.html</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">04 · Track</div><div class="node-name">Set activation milestones: signup → first_xkg_create → first_share</div><div class="node-agent-name">agent: experiment-tracker</div></div>
+    <div class="arrow">↓</div>
+    <div class="node decision"><div class="node-label">05 · Gate (24h later)</div><div class="node-name">User created ≥ 1 XKG?</div></div>
+    <div class="arrow branch">↙ NO ─── ↘ YES</div>
+    <div class="branch-container">
+      <div><div class="branch-label">NURTURE</div><div class="node agent"><div class="node-name">Send "how to create your first XKG" + offer 1:1 help</div><div class="node-agent-name">agent: support-responder</div></div></div>
+      <div><div class="branch-label">ACTIVATED</div><div class="node terminal"><div class="node-name">Mark activated=true, exit funnel</div></div></div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="node terminal"><div class="node-name">✓ User onboarded</div></div>
+  </div>
+</div>
+
+<!-- Pipeline: Bug Triage -->
+<div class="pipeline-block">
+  <div class="pipeline-header">
+    <div class="pipeline-title">🐛 Bug Triage: Report → Fix Deployed</div>
+    <div class="pipeline-meta"><span class="badge badge-freq">on-demand</span><span class="badge badge-time">~1-4h</span></div>
+  </div>
+  <div class="pipeline-trigger" style="padding: 6px 18px; color: #6b7280;">trigger: GitHub issue labeled "bug" or customer report in #support</div>
+  <div class="flow">
+    <div class="node agent"><div class="node-label">01 · Reproduce</div><div class="node-name">Run repro steps, capture logs + screenshot</div><div class="node-agent-name">agent: qa-agent</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">02 · Classify</div><div class="node-name">Severity: P0 (down) / P1 (broken) / P2 (degraded) / P3 (cosmetic)</div><div class="node-agent-name">agent: xkg-lead</div></div>
+    <div class="arrow">↓</div>
+    <div class="node decision"><div class="node-label">03 · Gate</div><div class="node-name">P0 or P1?</div></div>
+    <div class="arrow branch">↙ NO ─── ↘ YES</div>
+    <div class="branch-container">
+      <div><div class="branch-label">SCHEDULE</div><div class="node"><div class="node-name">Add to next sprint, notify reporter</div></div></div>
+      <div><div class="branch-label">HOTFIX</div><div class="node action"><div class="node-name">Page on-call, create hotfix branch, deploy within 4h SLA</div></div></div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">04 · Fix</div><div class="node-name">Implement + write regression test</div><div class="node-agent-name">agent: xkg-dev</div></div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">05 · Verify</div><div class="node-name">Deploy to staging → run E2E suite</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">06 · Post-mortem (P0/P1)</div><div class="node-name">Write incident doc, file in #post-mortems</div><div class="node-agent-name">agent: xkg-lead + reality-checker</div></div>
+    <div class="arrow">↓</div>
+    <div class="node terminal"><div class="node-name">✓ Bug fixed, user notified</div></div>
+  </div>
+</div>
+
+<!-- Pipeline: Content Marketing -->
+<div class="pipeline-block">
+  <div class="pipeline-header">
+    <div class="pipeline-title">📣 Content Marketing: Topic → Published</div>
+    <div class="pipeline-meta"><span class="badge badge-freq">3x/week</span><span class="badge badge-time">~4h</span></div>
+  </div>
+  <div class="pipeline-trigger" style="padding: 6px 18px; color: #6b7280;">trigger: cron 0 9 * * 1,3,5 (Mon/Wed/Fri)</div>
+  <div class="flow">
+    <div class="node agent"><div class="node-label">01 · Research</div><div class="node-name">Scan trends, keywords, competitor content</div><div class="node-agent-name">agent: trend-researcher</div><div class="node-detail">sources: X, Reddit, HN, Google Trends</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">02 · Ideation</div><div class="node-name">Generate 10 post topics, score virality</div><div class="node-agent-name">agent: studio-producer</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">03 · Draft</div><div class="node-name">Write long-form post (1000-2000 words)</div><div class="node-agent-name">agent: studio-producer</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">04 · Review</div><div class="node-name">Fact-check, tone, brand voice compliance</div><div class="node-agent-name">agent: legal-compliance-checker + reality-checker</div></div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">05 · Publish</div><div class="node-name">Push to blog + cross-post to X, LinkedIn</div><div class="node-detail">medium: griptoad26/agency-blog repo</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">06 · Amplify</div><div class="node-name">Schedule engagement replies for 24h</div><div class="node-agent-name">agent: instagram-curator + short-video-editing-coach</div></div>
+    <div class="arrow">↓</div>
+    <div class="node terminal"><div class="node-name">✓ Content live + engagement loop started</div></div>
+  </div>
+</div>
+
+<!-- Pipeline: Sales Lead -->
+<div class="pipeline-block">
+  <div class="pipeline-header">
+    <div class="pipeline-title">💰 Sales Lead: Inquiry → Closed Deal</div>
+    <div class="pipeline-meta"><span class="badge badge-freq">per-lead</span><span class="badge badge-time">~3-7 days</span></div>
+  </div>
+  <div class="pipeline-trigger" style="padding: 6px 18px; color: #6b7280;">trigger: form submit on /contact or inbound email</div>
+  <div class="flow">
+    <div class="node agent"><div class="node-label">01 · Capture</div><div class="node-name">Parse inquiry: company, size, need, budget</div><div class="node-agent-name">agent: sales-data-extraction-agent</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">02 · Enrich</div><div class="node-name">Lookup company on LinkedIn, Clearbit, Crunchbase</div><div class="node-agent-name">agent: cross-border-e-commerce-specialist</div></div>
+    <div class="arrow">↓</div>
+    <div class="node decision"><div class="node-label">03 · Score (BANT)</div><div class="node-name">Budget + Authority + Need + Timeline ≥ 7/10?</div></div>
+    <div class="arrow branch">↙ NO ─── ↘ YES</div>
+    <div class="branch-container">
+      <div><div class="branch-label">NURTURE</div><div class="node"><div class="node-name">Add to drip campaign, monthly check-in</div></div></div>
+      <div><div class="branch-label">QUALIFIED</div><div class="node action"><div class="node-label">04 · Schedule</div><div class="node-name">Book discovery call via Calendly</div></div></div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">05 · Discovery</div><div class="node-name">Run call, document pain + decision criteria</div><div class="node-agent-name">agent: main (or human)</div></div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">06 · Proposal</div><div class="node-name">Generate custom proposal + pricing</div><div class="node-detail">template: enterprise-{{size}}.pdf</div></div>
+    <div class="arrow">↓</div>
+    <div class="node decision"><div class="node-label">07 · Gate</div><div class="node-name">Signed?</div></div>
+    <div class="arrow branch">↙ NO ─── ↘ YES</div>
+    <div class="branch-container">
+      <div><div class="branch-label">FOLLOW-UP</div><div class="node"><div class="node-name">2 follow-ups at 3d, 7d intervals</div></div></div>
+      <div><div class="branch-label">WON</div><div class="node terminal"><div class="node-name">Trigger Customer Onboarding pipeline</div></div></div>
     </div>
   </div>
+</div>
 
-  <!-- ============================================ -->
-  <!-- PIPELINE 3: TASK EXECUTION                   -->
-  <!-- ============================================ -->
-  <div class="pipeline-block">
-    <div class="pipeline-header">
-      <div class="pipeline-title">⚡ Pipeline 3: Task Execution (Autonomous Runner)</div>
-      <div class="pipeline-trigger">trigger: cron */5 * * * *</div>
+<!-- Pipeline: Support Ticket -->
+<div class="pipeline-block">
+  <div class="pipeline-header">
+    <div class="pipeline-title">🎧 Support Ticket: Submit → Resolved</div>
+    <div class="pipeline-meta"><span class="badge badge-freq">per-ticket</span><span class="badge badge-time">~1-24h</span></div>
+  </div>
+  <div class="pipeline-trigger" style="padding: 6px 18px; color: #6b7280;">trigger: email to support@ or in-app form</div>
+  <div class="flow">
+    <div class="node agent"><div class="node-label">01 · Classify</div><div class="node-name">Intent: bug / how-to / billing / feature-request</div><div class="node-agent-name">agent: support-responder</div></div>
+    <div class="arrow">↓</div>
+    <div class="node decision"><div class="node-label">02 · Decision</div><div class="node-name">Confidence ≥ 0.9 + known answer?</div></div>
+    <div class="arrow branch">↙ NO ─── ↘ YES</div>
+    <div class="branch-container">
+      <div><div class="branch-label">ROUTE</div><div class="node"><div class="node-name">Assign to human agent by topic (billing/tech/feature)</div></div></div>
+      <div><div class="branch-label">AUTO-RESPOND</div><div class="node action"><div class="node-label">03 · Reply</div><div class="node-name">Send from KB article + offer to escalate</div></div></div>
     </div>
-    <div class="flow">
-      <div class="node">
-        <div class="node-label">01 · Poll</div>
-        <div class="node-name">GET /api/tasks?status=pending</div>
-        <div class="node-detail">every 5 min, max 5 tasks per cycle</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node decision">
-        <div class="node-label">02 · Decision Gate</div>
-        <div class="node-name">Pending tasks exist?</div>
-      </div>
-      <div class="arrow branch">↙ NO ─── ↘ YES</div>
-      <div class="branch-container">
-        <div>
-          <div class="branch-label">EXIT</div>
-          <div class="node terminal">
-            <div class="node-name">Idle until next cycle</div>
-          </div>
-        </div>
-        <div>
-          <div class="branch-label">PROCESS</div>
-          <div class="node agent">
-            <div class="node-label">03 · Route</div>
-            <div class="node-name">Match title/desc → agent</div>
-            <div class="node-agent-name">agent: pipeline-router.sh</div>
-            <div class="node-detail">build→build, test→qa, deploy→devops...</div>
-          </div>
-        </div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node action">
-        <div class="node-label">04 · Mark In-Progress</div>
-        <div class="node-name">PATCH /api/tasks/&lt;id&gt; {status:in_progress}</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node agent">
-        <div class="node-label">05 · Execute</div>
-        <div class="node-name">Spawn agent or run pipeline script</div>
-        <div class="node-agent-name">agent: &lt;routed-agent-id&gt;</div>
-        <div class="node-detail">timeout 60-90s based on pipeline</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node decision">
-        <div class="node-label">06 · Decision Gate</div>
-        <div class="node-name">Exit 0?</div>
-      </div>
-      <div class="arrow branch">↙ NO ─── ↘ YES</div>
-      <div class="branch-container">
-        <div>
-          <div class="branch-label">RETRY</div>
-          <div class="node">
-            <div class="node-name">status=delegated, log error, retry next cycle</div>
-          </div>
-        </div>
-        <div>
-          <div class="branch-label">COMPLETE</div>
-          <div class="node action">
-            <div class="node-label">07 · Close</div>
-            <div class="node-name">PATCH /api/tasks/&lt;id&gt; {status:completed}</div>
-            <div class="node-detail">append to autonomous-runner.log</div>
-          </div>
-        </div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node terminal">
-        <div class="node-name">✓ Task closed, next task in queue</div>
-      </div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">04 · Track</div><div class="node-name">Set SLA timer (P0=1h, P1=4h, P2=24h)</div></div>
+    <div class="arrow">↓</div>
+    <div class="node terminal"><div class="node-name">✓ Ticket closed, satisfaction survey sent</div></div>
+  </div>
+</div>
+
+<!-- Pipeline: Hiring -->
+<div class="pipeline-block">
+  <div class="pipeline-header">
+    <div class="pipeline-title">👥 Hiring: Application → Offer</div>
+    <div class="pipeline-meta"><span class="badge badge-freq">per-applicant</span><span class="badge badge-time">~1-2 weeks</span></div>
+  </div>
+  <div class="pipeline-trigger" style="padding: 6px 18px; color: #6b7280;">trigger: application via Greenhouse or direct email</div>
+  <div class="flow">
+    <div class="node agent"><div class="node-label">01 · Screen</div><div class="node-name">Parse resume, score vs role requirements</div><div class="node-agent-name">agent: recruitment-specialist</div></div>
+    <div class="arrow">↓</div>
+    <div class="node decision"><div class="node-label">02 · Gate</div><div class="node-name">Score ≥ 7/10?</div></div>
+    <div class="arrow branch">↙ NO ─── ↘ YES</div>
+    <div class="branch-container">
+      <div><div class="branch-label">POLITE REJECT</div><div class="node"><div class="node-name">Auto-reply with generic email</div></div></div>
+      <div><div class="branch-label">INTERVIEW 1</div><div class="node action"><div class="node-label">03 · Schedule</div><div class="node-name">30-min recruiter screen</div></div></div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">04 · Tech screen</div><div class="node-name">1h take-home or live coding</div></div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">05 · Onsite</div><div class="node-name">4 interviews: tech, system, culture, hiring mgr</div></div>
+    <div class="arrow">↓</div>
+    <div class="node decision"><div class="node-label">06 · Decision</div><div class="node-name">Hire? (unanimous)</div></div>
+    <div class="arrow branch">↙ NO ─── ↘ YES</div>
+    <div class="branch-container">
+      <div><div class="branch-label">PASS</div><div class="node"><div class="node-name">Polite rejection + future consideration</div></div></div>
+      <div><div class="branch-label">OFFER</div><div class="node terminal"><div class="node-name">Send offer letter, set start date</div></div></div>
     </div>
   </div>
+</div>
 
-  <!-- ============================================ -->
-  <!-- PIPELINE 4: HUB SYNC                         -->
-  <!-- ============================================ -->
-  <div class="pipeline-block">
-    <div class="pipeline-header">
-      <div class="pipeline-title">🔄 Pipeline 4: Cluster Hub ↔ x2 Sync</div>
-      <div class="pipeline-trigger">trigger: cron * * * * * (every minute)</div>
-    </div>
-    <div class="flow">
-      <div class="node">
-        <div class="node-label">01 · Check Inbox</div>
-        <div class="node-name">ls ~/.cluster-hub/comm/archivist-to-x2/work/</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node decision">
-        <div class="node-label">02 · Decision Gate</div>
-        <div class="node-name">New messages?</div>
-      </div>
-      <div class="arrow branch">↙ NO ─── ↘ YES</div>
-      <div class="branch-container">
-        <div>
-          <div class="branch-label">EXIT</div>
-          <div class="node terminal">
-            <div class="node-name">Sleep 60s</div>
-          </div>
-        </div>
-        <div>
-          <div class="branch-label">PROCESS</div>
-          <div class="node">
-            <div class="node-label">03 · Parse</div>
-            <div class="node-name">Read each .json / .md file</div>
-          </div>
-        </div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node agent">
-        <div class="node-label">04 · Decide</div>
-        <div class="node-name">Route by message type</div>
-        <div class="node-agent-name">agent: x2-relay.sh</div>
-        <div class="node-detail">task→hub, query→agent, ack→discard</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node action">
-        <div class="node-label">05 · Hub Update</div>
-        <div class="node-name">PATCH /api/tasks/&lt;id&gt;</div>
-        <div class="node-detail">based on payload (status, notes, assignee)</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node action">
-        <div class="node-label">06 · Move to Done</div>
-        <div class="node-name">mv /work/* /done/</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node action">
-        <div class="node-label">07 · Reply to bgx10</div>
-        <div class="node-name">write ~/.openclaw/workspace/x2-comm/&lt;ts&gt;.json</div>
-      </div>
-      <div class="arrow">↓</div>
-      <div class="node terminal">
-        <div class="node-name">✓ Round-trip complete</div>
-      </div>
+<!-- Pipeline: Fundraising -->
+<div class="pipeline-block">
+  <div class="pipeline-header">
+    <div class="pipeline-title">💼 Fundraising: Update Deck → Meeting</div>
+    <div class="pipeline-meta"><span class="badge badge-freq">quarterly</span><span class="badge badge-time">~2 weeks</span></div>
+  </div>
+  <div class="pipeline-trigger" style="padding: 6px 18px; color: #6b7280;">trigger: monthly metrics review or run-rate drops below 6mo</div>
+  <div class="flow">
+    <div class="node agent"><div class="node-label">01 · Metrics Pull</div><div class="node-name">MRR, ARR, growth, burn, runway, key wins</div><div class="node-agent-name">agent: experiment-tracker</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">02 · Deck Update</div><div class="node-name">Refresh traction slide, add new logos</div><div class="node-agent-name">agent: studio-producer</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">03 · Investor List</div><div class="node-name">Score 50 VCs by thesis fit, stage, geography</div><div class="node-agent-name">agent: cross-border-e-commerce-specialist</div></div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">04 · Outreach</div><div class="node-name">Warm intros first, then cold emails</div><div class="node-detail">target: 5% response rate, 1% meeting rate</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">05 · Diligence Prep</div><div class="node-name">Dataroom: financials, contracts, cap table, IP</div><div class="node-agent-name">agent: legal-compliance-checker</div></div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">06 · Partner Meeting</div><div class="node-name">30-min pitch + 30-min Q&A</div></div>
+    <div class="arrow">↓</div>
+    <div class="node terminal"><div class="node-name">✓ Term sheet → close round</div></div>
+  </div>
+</div>
+
+<!-- Pipeline: Weekly Ops Review -->
+<div class="pipeline-block">
+  <div class="pipeline-header">
+    <div class="pipeline-title">📊 Weekly Ops Review (Monday 9am)</div>
+    <div class="pipeline-meta"><span class="badge badge-freq">weekly</span><span class="badge badge-time">~30 min</span></div>
+  </div>
+  <div class="pipeline-trigger" style="padding: 6px 18px; color: #6b7280;">trigger: cron 0 9 * * 1 (Mondays)</div>
+  <div class="flow">
+    <div class="node agent"><div class="node-label">01 · Pull Data</div><div class="node-name">Hub stats, Stripe MRR, support tickets, GitHub activity</div><div class="node-agent-name">agent: ocmi-orchestrator</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">02 · Generate Report</div><div class="node-name">Last week: shipped / revenue / blocked / customers</div><div class="node-agent-name">agent: main</div></div>
+    <div class="arrow">↓</div>
+    <div class="node action"><div class="node-label">03 · Post to Channel</div><div class="node-name">#weekly-review with TLDR + details</div></div>
+    <div class="arrow">↓</div>
+    <div class="node agent"><div class="node-label">04 · Flag Risks</div><div class="node-name">Runway &lt; 6mo? NPS dropping? Stuck tasks &gt; 5?</div><div class="node-agent-name">agent: reality-checker</div></div>
+    <div class="arrow">↓</div>
+    <div class="node terminal"><div class="node-name">✓ Team aligned, OKRs updated</div></div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 2: AGENT OFFICE                       -->
+<!-- ============================================ -->
+<h2>2️⃣ Agent Office Workspace — Feasibility</h2>
+
+<div class="feasibility">
+  <div class="feasibility-title">✅ FEASIBLE — 100% buildable with current stack</div>
+  <div class="feasibility-body">
+    Discord, Slack, and Mattermost all have webhooks + bot APIs that map 1:1 to our agent system. Each agent already has a SOUL.md that defines role + personality. Wiring them to chat channels is a thin adapter layer.
+  </div>
+</div>
+
+<div class="arch-box">
+  <div class="arch-layer">
+    <div class="arch-layer-title">🖥️ Frontend</div>
+    <div class="arch-layer-desc">Slack / Discord / Mattermost / Rocket.Chat / custom web UI</div>
+  </div>
+  <div class="arch-arrow">↓ webhook + bot tokens</div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">📡 Chat Adapter</div>
+    <div class="arch-layer-desc">/home/x2/.cluster-hub/chat-adapter/ — translates chat events to Hub task events, vice versa</div>
+  </div>
+  <div class="arch-arrow">↓</div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">🧠 OpenClaw Runtime</div>
+    <div class="arch-layer-desc">Each agent = process. Spawned on demand, has memory, tools, identity. Already exists for 45 agents.</div>
+  </div>
+  <div class="arch-arrow">↓</div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">💾 Cluster Hub</div>
+    <div class="arch-layer-desc">Task routing, state, history. Endpoint: 127.0.0.1:8090. Already running.</div>
+  </div>
+  <div class="arch-arrow">↓</div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">🛠️ Tools & Skills</div>
+    <div class="arch-layer-desc">qwen-vl (vision), desktop-automation, web-fetch, file system, shell</div>
+  </div>
+</div>
+
+<h3 style="color:#a78bfa; font-size:15px; margin: 20px 0 10px 0;">📺 Channel Layout (Like a Real Office)</h3>
+<div class="office-grid">
+  <div class="channel">
+    <div class="channel-head">#general</div>
+    <div class="channel-members">
+      <div class="member"><div class="avatar">OC</div>ocmi-orchestrator<div class="status"></div></div>
+      <div class="member"><div class="avatar">M</div>main<div class="status"></div></div>
+      <div class="member"><div class="avatar">R</div>reality-checker<div class="status away"></div></div>
     </div>
   </div>
 
-  <div class="footer">
-    Each pipeline is a real executable sequence. Run any block from /home/x2/.cluster-hub/comm/pipelines/
+  <div class="channel">
+    <div class="channel-head">#engineering</div>
+    <div class="channel-members">
+      <div class="member"><div class="avatar dev">XD</div>xkg-dev<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">FD</div>frontend-developer<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">QA</div>qa-agent<div class="status busy"></div></div>
+      <div class="member"><div class="avatar dev">RV</div>xkg-reviewer<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">DO</div>devops-agent<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">SE</div>security-agent<div class="status"></div></div>
+    </div>
   </div>
+
+  <div class="channel">
+    <div class="channel-head">#mobile</div>
+    <div class="channel-members">
+      <div class="member"><div class="avatar dev">XL</div>xkg-mobile-lead<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">XM</div>xkg-mobile-dev<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">XQ</div>xkg-mobile-qa<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">XR</div>xkg-mobile-reviewer<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">AT</div>android-agent<div class="status away"></div></div>
+    </div>
+  </div>
+
+  <div class="channel">
+    <div class="channel-head">#marketing</div>
+    <div class="channel-members">
+      <div class="member"><div class="avatar marketing">TR</div>trend-researcher<div class="status"></div></div>
+      <div class="member"><div class="avatar marketing">SP</div>studio-producer<div class="status"></div></div>
+      <div class="member"><div class="avatar marketing">IC</div>instagram-curator<div class="status busy"></div></div>
+      <div class="member"><div class="avatar marketing">SV</div>short-video-editing-coach<div class="status"></div></div>
+    </div>
+  </div>
+
+  <div class="channel">
+    <div class="channel-head">#sales</div>
+    <div class="channel-members">
+      <div class="member"><div class="avatar sales">SD</div>sales-data-extraction-agent<div class="status"></div></div>
+      <div class="member"><div class="avatar sales">CB</div>cross-border-e-commerce-specialist<div class="status"></div></div>
+      <div class="member"><div class="avatar sales">PD</div>programmatic-display-buyer<div class="status"></div></div>
+      <div class="member"><div class="avatar sales">PR</div>private-domain-operator<div class="status away"></div></div>
+    </div>
+  </div>
+
+  <div class="channel">
+    <div class="channel-head">#support</div>
+    <div class="channel-members">
+      <div class="member"><div class="avatar support">SR</div>support-responder<div class="status"></div></div>
+      <div class="member"><div class="avatar support">ET</div>experiment-tracker<div class="status"></div></div>
+      <div class="member"><div class="avatar support">TM</div>tracking-measurement-specialist<div class="status"></div></div>
+    </div>
+  </div>
+
+  <div class="channel">
+    <div class="channel-head">#finance-legal</div>
+    <div class="channel-members">
+      <div class="member"><div class="avatar finance">ST</div>stripe-agent<div class="status"></div></div>
+      <div class="member"><div class="avatar finance">DB</div>database-optimizer<div class="status"></div></div>
+      <div class="member"><div class="avatar legal">LC</div>legal-compliance-checker<div class="status"></div></div>
+      <div class="member"><div class="avatar legal">HM</div>healthcare-marketing-compliance-specialist<div class="status away"></div></div>
+    </div>
+  </div>
+
+  <div class="channel">
+    <div class="channel-head">#hiring</div>
+    <div class="channel-members">
+      <div class="member"><div class="avatar hr">RC</div>recruitment-specialist<div class="status"></div></div>
+    </div>
+  </div>
+
+  <div class="channel">
+    <div class="channel-head">#ops-devops</div>
+    <div class="channel-members">
+      <div class="member"><div class="avatar dev">CO</div>cloud-ops-agent<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">AR</div>archivist<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">XR</div>xr-immersive-developer<div class="status away"></div></div>
+    </div>
+  </div>
+
+  <div class="channel">
+    <div class="channel-head">#incidents (P0/P1)</div>
+    <div class="channel-members">
+      <div class="member"><div class="avatar dev">DO</div>devops-agent<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">XL</div>xkg-mobile-lead<div class="status"></div></div>
+      <div class="member"><div class="avatar dev">RC</div>reality-checker<div class="status"></div></div>
+    </div>
+  </div>
+</div>
+
+<h3 style="color:#a78bfa; font-size:15px; margin: 24px 0 10px 0;">💬 How Agent Communication Works</h3>
+<div class="arch-box">
+  <div class="arch-layer">
+    <div class="arch-layer-title">Example 1: Handoff</div>
+    <div class="arch-layer-desc">#engineering: xkg-dev says "feature done, need review" → @xkg-reviewer spawns, posts review in thread</div>
+  </div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">Example 2: Escalation</div>
+    <div class="arch-layer-desc">#support: support-responder says "billing issue, can't answer" → @stripe-agent auto-spawns, joins thread</div>
+  </div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">Example 3: Standup</div>
+    <div class="arch-layer-desc">9am Mon: orchestrator posts "📊 weekly metrics" in #general with auto-pulled data from Hub</div>
+  </div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">Example 4: Incident</div>
+    <div class="arch-layer-desc">PagerDuty webhook → #incidents pings devops + on-call → they collaborate live, post resolution</div>
+  </div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">Example 5: Cross-team</div>
+    <div class="arch-layer-desc">#marketing: studio-producer launches campaign → @sales-data-extraction-agent reports signups → @support-responder preps docs</div>
+  </div>
+</div>
+
+<h3 style="color:#a78bfa; font-size:15px; margin: 24px 0 10px 0;">🔧 Implementation Effort</h3>
+<div class="arch-box">
+  <div class="arch-layer">
+    <div class="arch-layer-title">Discord (fastest)</div>
+    <div class="arch-layer-desc">~2-3 days. We already have Discord webhook. Create one bot per channel topic, map @-mentions to agent spawn.</div>
+  </div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">Slack</div>
+    <div class="arch-layer-desc">~1 week. Use Slack Bot SDK, create one app per workspace, install to channels. Bolt framework.</div>
+  </div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">Mattermost (self-hosted)</div>
+    <div class="arch-layer-desc">~3-4 days. We could host on x2-nuc, no API limits, full control. Best long-term option.</div>
+  </div>
+  <div class="arch-layer">
+    <div class="arch-layer-title">Custom Web UI</div>
+    <div class="arch-layer-desc">~2 weeks. Build Slack-clone at /hub/chat/ using existing hub.seele.agency infrastructure.</div>
+  </div>
+</div>
+
+<div class="footer">
+  Each pipeline maps to real agents already in /home/x2/.openclaw/agents/. Office workspace needs ~1 week to ship Discord version, ~1 month for full Slack parity.
+</div>
 </body>
 </html>
